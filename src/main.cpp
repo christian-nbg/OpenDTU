@@ -21,6 +21,33 @@
 #include <Arduino.h>
 #include <LittleFS.h>
 
+// Anfang Christian:
+// Serial Port for IR
+#define RXD2 21
+#define TXD2 22
+//globe Variable zum speichern von Daten welche empfangen werden
+
+unsigned char W_Bezug[] ={0x07, 0x01, 0x00, 0x01, 0x08, 0x00, 0xFF}; //Energie Summe, Bezug; OBIS 1.0-1.8.0
+unsigned char W_Export[] ={0x07, 0x01, 0x00, 0x02, 0x08, 0x00, 0xFF}; //Energie Summe, Export; OBIS 1.0-2.8.0
+unsigned char P_aktuell[]={0x07, 0x01, 0x00, 0x10, 0x07, 0x00, 0xFF}; //Momentane Wirkleistung; OBIS ???
+unsigned char ServerID[] ={0x07, 0x01, 0x00, 0x00, 0x00, 0x09, 0xFF}; //ServerID; OBIS ???
+
+unsigned char W_Bezug_buff[19];
+unsigned char W_Export_buff[15];
+unsigned char P_aktuell_buff[11];
+unsigned char ServerID_buff[15];
+unsigned long Bezug_Summe; 
+unsigned long Export_Summe; 
+unsigned long Paktuell_Summe; 
+
+
+int index_Bezug =0;
+int index_Export =0;
+int index_P_aktuell =0;
+int i;
+unsigned char wert; 
+//Ende Christian
+
 void setup()
 {
     // Initialize serial output
@@ -29,6 +56,15 @@ void setup()
         yield();
     MessageOutput.println();
     MessageOutput.println("Starting OpenDTU");
+
+    // Anfang Christian:
+    // Initialize serial2 input
+    Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
+    while (!Serial2)
+        yield();
+    MessageOutput.println();
+    MessageOutput.println("Serial2 OK");
+    // Ende Christian
 
     // Initialize file system
     MessageOutput.print("Initialize FS... ");
@@ -158,4 +194,69 @@ void loop()
     yield();
     LedSingle.loop();
     yield();
+    //Anfang Christian
+    while (Serial2.available()>0)
+    {
+      wert=Serial2.read();
+      
+      //Bezug
+      if (wert == W_Bezug[index_Bezug] )
+      {
+        index_Bezug++;
+      }
+      else
+      {
+        index_Bezug=0;
+      }
+
+      //Export
+      if (wert == W_Export[index_Export] )
+      {
+        index_Export++;
+      }
+      else
+      {
+        index_Export=0;
+      }
+
+      //Momentanleistung
+      if (wert == P_aktuell[index_P_aktuell] )
+      {
+        index_P_aktuell++;
+      }
+      else
+      {
+        index_P_aktuell=0;
+      }
+
+
+    
+      if (index_Bezug==7) 
+      {
+        MessageOutput.print("Bezug gefunden  [0,1 Wh]: ");
+        Serial2.readBytes(W_Bezug_buff, 19);
+        Bezug_Summe= ((unsigned long)W_Bezug_buff[18]+(unsigned long)256*(unsigned long)W_Bezug_buff[17]+(unsigned long)256*(unsigned long)256*(unsigned long)W_Bezug_buff[16]+(unsigned long)256*(unsigned long)256*(unsigned long)256*(unsigned long)W_Bezug_buff[15]);
+        MessageOutput.println(Bezug_Summe);
+      }
+      
+      if (index_Export==7) 
+      {
+        MessageOutput.print("Export gefunden [0,1 Wh]: ");
+        Serial2.readBytes(W_Export_buff, 15);
+        Export_Summe= (unsigned long)((unsigned long)W_Export_buff[14]+(unsigned long)256*(unsigned long)W_Export_buff[13]+(unsigned long)256*(unsigned long)256*(unsigned long)W_Export_buff[12]+(unsigned long)256*(unsigned long)256*(unsigned long)256*(unsigned long)W_Export_buff[11]);
+        MessageOutput.println(Export_Summe);
+      }
+       
+      if (index_P_aktuell==7) 
+      {
+        MessageOutput.println("P_Aktuell gefunden   [W]: ");
+        Serial2.readBytes(P_aktuell_buff, 11);
+        Paktuell_Summe= (unsigned long)((unsigned long)P_aktuell_buff[10]+(unsigned long)256*(unsigned long)P_aktuell_buff[9]+(unsigned long)256*(unsigned long)256*(unsigned long)P_aktuell_buff[8]+(unsigned long)256*(unsigned long)256*(unsigned long)256*(unsigned long)P_aktuell_buff[7]);
+        MessageOutput.println(Paktuell_Summe);
+      }  
+    }
+    //Ende Christian
+
+
+
 }
