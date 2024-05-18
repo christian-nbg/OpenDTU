@@ -55,8 +55,8 @@ void HoymilesClass::loop()
             }
 
             if (iv != nullptr && iv->getRadio()->isInitialized() && iv->getRadio()->isIdle()) {
-                _messageOutput->print("Fetch inverter: ");
-                _messageOutput->println(iv->serial(), HEX);
+                //_messageOutput->print("Fetch inverter: ");
+                //_messageOutput->println(iv->serial(), HEX);
 
                 if (!iv->isReachable()) {
                     iv->sendChangeChannelRequest();
@@ -72,25 +72,25 @@ void HoymilesClass::loop()
                 if ((iv->SystemConfigPara()->getLastLimitRequestSuccess() == CMD_NOK)
                     || ((millis() - iv->SystemConfigPara()->getLastUpdateRequest() > HOY_SYSTEM_CONFIG_PARA_POLL_INTERVAL)
                         && (millis() - iv->SystemConfigPara()->getLastUpdateCommand() > HOY_SYSTEM_CONFIG_PARA_POLL_MIN_DURATION))) {
-                    _messageOutput->println("Request SystemConfigPara");
+                    //_messageOutput->println("Request SystemConfigPara");
                     iv->sendSystemConfigParaRequest();
                 }
 
                 // Set limit if required
                 if (iv->SystemConfigPara()->getLastLimitCommandSuccess() == CMD_NOK) {
-                    _messageOutput->println("Resend ActivePowerControl");
+                    //_messageOutput->println("Resend ActivePowerControl");
                     iv->resendActivePowerControlRequest();
                 }
 
                 // Set power status if required
                 if (iv->PowerCommand()->getLastPowerCommandSuccess() == CMD_NOK) {
-                    _messageOutput->println("Resend PowerCommand");
+                    //_messageOutput->println("Resend PowerCommand");
                     iv->resendPowerControlRequest();
                 }
 
                 // Fetch dev info (but first fetch stats)
                 if (iv->Statistics()->getLastUpdate() > 0 && (iv->DevInfo()->getLastUpdateAll() == 0 || iv->DevInfo()->getLastUpdateSimple() == 0)) {
-                    _messageOutput->println("Request device info");
+                    //_messageOutput->println("Request device info");
                     iv->sendDevInfoRequest();
                 }
 

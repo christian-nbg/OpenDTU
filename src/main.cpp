@@ -249,7 +249,7 @@ void loop()
        
       if (index_P_aktuell==7) 
       {
-        MessageOutput.println("P_Aktuell gefunden   [W]: ");
+        MessageOutput.print("P_Aktuell gefunden   [W]: ");
         Serial2.readBytes(P_aktuell_buff, 11);
         Paktuell_Summe= (unsigned long)((unsigned long)P_aktuell_buff[10]+(unsigned long)256*(unsigned long)P_aktuell_buff[9]+(unsigned long)256*(unsigned long)256*(unsigned long)P_aktuell_buff[8]+(unsigned long)256*(unsigned long)256*(unsigned long)256*(unsigned long)P_aktuell_buff[7]);
         MessageOutput.println(Paktuell_Summe);
